@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="Generator" content="EditPlus®">
+    <meta name="Author" content="">
+    <meta name="Keywords" content="">
+    <meta name="Description" content="">
+    <title>Document</title>
+    <script type="text/javascript" src="./node_modules/d3/d3.js"></script>
+
+
+    <style>
+
+        body {
+            font: 10px sans-serif;
+            color: #ccc !important;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #888;
+            shape-rendering: crispEdges;
+            color: #ccc !important;
+        }
+
+        .bar {
+            fill: steelblue;
+            color: #ccc !important;
+        }
+
+        .x.axis path {
+            display: none;
+            color: #ccc !important;
+        }
+
+        .fd {
+            width: 18px;
+            height: 1px;
+            margin-top: 2px;
+            background-color: green;
+        }
+
+        #container {
+            /*background: #ccc;*/
+            width: 1050px;
+            color: #ccc !important;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<script>
+    // let dataset = [{
+    //     "State": "CA",
+    //     "Current Seller": "2704659",
+    //     "Same Manager": "4499890",
+    //     "Same GMT": "2159981"
+    // }, {"State": "FL", "Current Seller": "1140516", "Same Manager": "1938695", "Same GMT": "925060"}, {
+    //     "State": "GA",
+    //     "Current Seller": "740521",
+    //     "Same Manager": "1250460",
+    //     "Same GMT": "557860"
+    // }, {"State": "IL", "Current Seller": "894368", "Same Manager": "1558919", "Same GMT": "725973"}, {
+    //     "State": "MD",
+    //     "Current Seller": "371787",
+    //     "Same Manager": "651923",
+    //     "Same GMT": "316873"
+    // }, {"State": "MA", "Current Seller": "383568", "Same Manager": "701752", "Same GMT": "341713"}, {
+    //     "State": "MI",
+    //     "Current Seller": "625526",
+    //     "Same Manager": "1179503",
+    //     "Same GMT": "585169"
+    // }, {"State": "MO", "Current Seller": "399450", "Same Manager": "690476", "Same GMT": "331543"}, {
+    //     "State": "NJ",
+    //     "Current Seller": "557421",
+    //     "Same Manager": "1011656",
+    //     "Same GMT": "478505"
+    // }, {"State": "NY", "Current Seller": "1208495", "Same Manager": "2141490", "Same GMT": "1058031"}, {
+    //     "State": "OH",
+    //     "Current Seller": "743750",
+    //     "Same Manager": "1340492",
+    //     "Same GMT": "646135"
+    // }, {"State": "PA", "Current Seller": "737462", "Same Manager": "1345341", "Same GMT": "679201"}, {
+    //     "State": "TX",
+    //     "Current Seller": "2027307",
+    //     "Same Manager": "3277946",
+    //     "Same GMT": "1420518"
+    // }]
+
+    let dataset = [
+        {
+            "State":"female",
+            "female_0":"63",
+            "female_1":"187"
+        },
+        {
+            "State":"male",
+            "female_0":"376",
+            "female_1":"87"
+        }
+    ]
+    var margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    var x = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+
+    var y = d3.scale.linear()
+        .rangeRound([height, 0]);
+
+    var color = d3.scale.ordinal()
+        .range(["#1f77b4", "#ff7f0e", "#2ca02c"]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickFormat(d3.format(".2s"));
+
+    var svg = d3.select("#container").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // d3.csv("data15.csv", function (error, data) {
+    //
+    // });
+    color.domain(d3.keys(dataset[0]).filter(function (key) {
+        return key !== "State";
+    }));
+    //
+    dataset.forEach(function (d) {
+        var y0 = 0;
+        d.ages = color.domain().map(function (name) {
+            return {name: name, y0: y0, y1: y0 += +d[name]};
+        });
+        d.total = d.ages[d.ages.length - 1].y1;
+    });
+    //
+    // // data.sort(function(a, b) { return b.total - a.total; });
+    //
+    x.domain(dataset.map(function (d) {
+        return d.State;
+    }));
+    y.domain([0, d3.max(dataset, function (d) {
+        return d.total;
+    })]);
+    //
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+    //.text("Population");
+
+    var state = svg.selectAll(".state")
+        .data(dataset)
+        .enter().append("g")
+        .attr("class", "g")
+        .attr("transform", function (d) {
+            return "translate(" + x(d.State) + ",0)";
+        });
+
+    state.selectAll("rect")
+        .data(function (d) {
+            return d.ages;
+        })
+        .enter().append("rect")
+        .attr("width", x.rangeBand())
+        .attr("y", function (d) {
+            return y(d.y1);
+        })
+        .attr("height", function (d) {
+            return y(d.y0) - y(d.y1);
+        })
+        .style("fill", function (d) {
+            return color(d.name);
+        });
+
+    // var legend = svg.selectAll(".legend")
+    //     .data(color.domain().slice().reverse())
+    //     .enter().append("g")
+    //     .attr("class", "legend")
+    //     .style("font-color", 'white')
+    //     .attr("transform", function (d, i) {
+    //         return "translate(0," + i * 20 + ")";
+    //     });
+    //
+    // legend.append("rect")
+    //     .attr("x", width - 18)
+    //     .attr("width", 18)
+    //     .attr("height", 18)
+    //     .style("fill", color);
+    //
+    // legend.append("text")
+    //     .attr("x", width - 24)
+    //     .attr("y", 9)
+    //     .attr("dy", "0.35em")
+    //     .style("text-anchor", "end")
+    //     .text(function (d) {
+    //         return d;
+    //     });
+
+</script>
+</body>
+</html>
