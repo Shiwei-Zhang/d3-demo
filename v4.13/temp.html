@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D3 简单线状图</title>
+    <link rel="stylesheet" href="css/Charts.css">
+    <style>
+        #app {
+            width: 1650px;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>D3 简单线状图</h1>
+        <div class="bar-chart--simple">
+            <svg ref="chartRef"></svg>
+        </div>
+    </div>
+    <script src="js/vue.js"></script>
+    <script src="js/d3.js"></script>
+    <script src="js/d3-tip.js"></script>
+    <script>
+        let vm = new Vue({
+            el: '#app',
+            data: {},
+            mounted() {
+                this.init();
+            },
+            methods: {
+                init() { }
+            }
+        })
+    </script>
+</body>
+
+</html>

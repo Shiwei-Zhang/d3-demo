@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D3 简单标签云图</title>
+    <link rel="stylesheet" href="css/Charts.css">
+    <style>
+        #app {
+            width: 1650px;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>D3 简单标签云图</h1>
+        <div class="tag-cloud-chart--simple">
+            <svg ref="chartRef"></svg>
+        </div>
+    </div>
+    <script src="js/vue.js"></script>
+    <script src="js/d3.js"></script>
+    <script src="js/d3-tip.js"></script>
+    <script src="js/d3-cloud.js"></script>
+    <script>
+        let vm = new Vue({
+            el: '#app',
+            data: {
+                cloudData: [
+                    { name: '腾讯', value: 10, href: 'http://www.qq.com/' },
+                    { name: '阿里巴巴', value: 10, href: 'https://www.taobao.com/' },
+                    { name: '百度', value: 9, href: 'https://www.baidu.com/' },
+                    { name: '京东', value: 8, href: 'https://www.jd.com/' },
+                    { name: '今日头条', value: 7, href: 'https://www.toutiao.com/' },
+                    { name: '网易', value: 8, href: 'http://www.163.com/' },
+                    { name: '新浪', value: 6, href: 'http://www.sina.com.cn/' },
+                    { name: '搜狐', value: 6, href: 'http://www.sohu.com/' },
+                    { name: '美团点评', value: 5, href: 'http://www.meituan.com/' },
+                    { name: '携程', value: 5, href: 'http://www.ctrip.com/' },
+                    { name: '360', value: 7, href: 'https://www.360.cn/' },
+                    { name: '小米', value: 6, href: 'https://www.mi.com/' },
+                    { name: '饿了么', value: 6, href: 'https://www.ele.me/' },
+                    { name: '迅雷', value: 6, href: 'http://xunlei.com/' },
+                    { name: '滴滴', value: 7, href: 'http://www.xiaojukeji.com' },
+                    { name: '摩拜', value: 5, href: 'https://mobike.com/cn/' },
+                    { name: 'ofo', value: 6, href: 'http://www.ofo.so/' }
+                ]
+            },
+            mounted() {
+                this.init();
+            },
+            methods: {
+                init() {
+                    const containerWidth = this.$refs.chartRef.parentElement.offsetWidth;
+                    const data = this.cloudData;
+                    let chart = d3.select(this.chartRef);
+
+                    let fill = d3.scaleOrdinal(d3.schemeCategory20); // 定义颜色
+
+                    let words = data.map(item => {
+                        // 处理原始数据
+                        return {
+                            text: item.name,
+                            size: 10 + item.value * 8,
+                            href: item.href
+                        }
+                    })
+
+                    let layout = d3Cloud() // 构建云图
+                        .size([500, 500])
+                        .words(words)
+                        .padding(5)
+                        .rotate(function () {
+                            return ~~(Math.random() * 2) * 90
+                        })
+                        .font('Impact')
+                        .fontSize(function (d) {
+                            return d.size
+                        })
+                        .on('end', draw)
+
+                    layout.start()
+
+                    function draw(words) {
+                        // 输出所有标签
+                        let g = chart
+                            .attr('width', containerWidth)
+                            .attr('height', layout.size()[1])
+                            .append('g')
+                            .attr(
+                                'transform',
+                                'translate(' + containerWidth / 2 + ',' + layout.size()[1] / 2 + ')'
+                            )
+
+                        g.selectAll('text')
+                            .data(words)
+                            .enter()
+                            .append('text')
+                            .on('click', function (d) {
+                                window.open(d.href)
+                            })
+                            .style('font-family', 'Impact')
+                            .style('cursor', 'pointer')
+                            .style('fill', function (d, i) {
+                                return fill(i)
+                            })
+                            .attr('text-anchor', 'middle')
+                            .attr('transform', function (d) {
+                                return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')'
+                            })
+                            .style('font-size', function (d) {
+                                return d.size + 'px'
+                            })
+                            .text(function (d) {
+                                return d.text
+                            })
+                            .append('title')
+                            .text(function (d) {
+                                return d.href
+                            })
+
+                        g.selectAll('text') // 创建动画
+                            .style('fill-opacity', 0)
+                            .transition()
+                            .duration(200)
+                            .delay(function (d, i) {
+                                return i * 200
+                            })
+                            .style('fill-opacity', 1)
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
